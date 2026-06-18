@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poll App</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            font-size: 22px;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 28px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border: 2px solid #e8e8e8;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option:hover { border-color: #4f8ef7; background: #f7f9ff; }
+        .option.selected { border-color: #4f8ef7; background: #f0f5ff; }
+
+        .option input[type="radio"] { accent-color: #4f8ef7; width: 18px; height: 18px; }
+
+        .option label {
+            font-size: 15px;
+            color: #333;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #4f8ef7;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn:hover { background: #3a7be0; }
+        .btn:disabled { background: #aaa; cursor: not-allowed; }
+
+        .message {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .message.success { background: #e6f9f0; color: #1a9e5c; display: block; }
+        .message.error { background: #fdecea; color: #d32f2f; display: block; }
+
+        .divider {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 28px 0;
+        }
+
+        .results-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+        }
+
+        .result-row {
+            margin-bottom: 14px;
+        }
+
+        .result-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #444;
+            margin-bottom: 5px;
+        }
+
+        .bar-bg {
+            background: #f0f2f5;
+            border-radius: 6px;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: #4f8ef7;
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+
+        .total {
+            text-align: center;
+            color: #888;
+            font-size: 13px;
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1 id="question">Loading...</h1>
+        <p class="subtitle">Select an option and submit your vote</p>
+
+        <div id="options-container"></div>
+
+        <button class="btn" id="vote-btn" onclick="submitVote()">Submit Vote</button>
+        <div class="message" id="message"></div>
+
+        <hr class="divider">
+
+        <div class="results-title">Live Results</div>
+        <div id="results-container"></div>
+        <div class="total" id="total"></div>
+    </div>
+
+    <script>
+        // Load poll question and options on page load
+        async function loadPoll() {
+            const res = await fetch('/poll');
+            const data = await res.json();
+
+            document.getElementById('question').textContent = data.question;
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            data.options.forEach(option => {
+                container.innerHTML += `
+                    <div class="option" onclick="selectOption('${option}')">
+                        <input type="radio" name="option" id="${option}" value="${option}">
+                        <label for="${option}">${option}</label>
+                    </div>`;
+            });
+
+            loadResults();
+        }
+
+        function selectOption(value) {
+            document.querySelectorAll('.option').forEach(el => el.classList.remove('selected'));
+            document.getElementById(value).checked = true;
+            event.currentTarget.classList.add('selected');
+        }
+
+        // Submit vote
+        async function submitVote() {
+            const selected = document.querySelector('input[name="option"]:checked');
+            const msg = document.getElementById('message');
+
+            if (!selected) {
+                msg.textContent = 'Please select an option first.';
+                msg.className = 'message error';
+                return;
+            }
+
+            const btn = document.getElementById('vote-btn');
+            btn.disabled = true;
+
+            const res = await fetch('/poll/vote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ option: selected.value })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                msg.textContent = data.message;
+                msg.className = 'message success';
+                loadResults();
+            } else {
+                msg.textContent = data.error;
+                msg.className = 'message error';
+                btn.disabled = false;
+            }
+        }
+
+        // Load and display results
+        async function loadResults() {
+            const res = await fetch('/poll/results');
+            const data = await res.json();
+
+            const total = data.total_votes;
+            const container = document.getElementById('results-container');
+            container.innerHTML = '';
+
+            Object.entries(data.results).forEach(([option, votes]) => {
+                const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
+                container.innerHTML += `
+                    <div class="result-row">
+                        <div class="result-label">
+                            <span>${option}</span>
+                            <span>${votes} votes (${pct}%)</span>
+                        </div>
+                        <div class="bar-bg">
+                            <div class="bar-fill" style="width: ${pct}%"></div>
+                        </div>
+                    </div>`;
+            });
+
+            document.getElementById('total').textContent = `Total votes: ${total}`;
+        }
+
+        loadPoll();
+    </script>
+</body>
+</html>
