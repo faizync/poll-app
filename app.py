@@ -51,5 +51,11 @@ def results():
         "total_votes": total
     })
 
+@app.route('/poll/reset', methods=['POST'])
+def reset_poll():
+    for key in poll["options"]:
+        poll["options"][key] = 0
+    return jsonify({"message": "Poll has been reset."}), 200
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

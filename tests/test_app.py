@@ -37,3 +37,10 @@ def test_results(client):
     assert response.status_code == 200
     data = response.get_json()
     assert 'total_votes' in data
+
+def test_reset_poll(client):
+    client.post('/poll/vote', json={"option": "Python"})
+    response = client.post('/poll/reset')
+    assert response.status_code == 200
+    results = client.get('/poll/results').get_json()
+    assert results['total_votes'] == 0

@@ -51,6 +51,7 @@
 
         .option:hover { border-color: #4f8ef7; background: #f7f9ff; }
         .option.selected { border-color: #4f8ef7; background: #f0f5ff; }
+        .option.disabled { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
 
         .option input[type="radio"] { accent-color: #4f8ef7; width: 18px; height: 18px; }
 
@@ -78,6 +79,22 @@
         .btn:hover { background: #3a7be0; }
         .btn:disabled { background: #aaa; cursor: not-allowed; }
 
+        .btn-reset {
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            color: #d32f2f;
+            border: 1.5px solid #d32f2f;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-reset:hover { background: #fdecea; }
+
         .message {
             text-align: center;
             padding: 10px;
@@ -89,6 +106,7 @@
 
         .message.success { background: #e6f9f0; color: #1a9e5c; display: block; }
         .message.error { background: #fdecea; color: #d32f2f; display: block; }
+        .message.info { background: #e8f0fe; color: #1a56db; display: block; }
 
         .divider {
             border: none;
@@ -96,11 +114,42 @@
             margin: 28px 0;
         }
 
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
         .results-title {
             font-size: 16px;
             font-weight: 600;
             color: #1a1a2e;
-            margin-bottom: 16px;
+        }
+
+        .live-badge {
+            font-size: 11px;
+            font-weight: 600;
+            color: #1a9e5c;
+            background: #e6f9f0;
+            border-radius: 20px;
+            padding: 3px 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            background: #1a9e5c;
+            border-radius: 50%;
+            animation: pulse 1.4s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
         }
 
         .result-row {
@@ -113,6 +162,16 @@
             font-size: 14px;
             color: #444;
             margin-bottom: 5px;
+        }
+
+        .result-label .winner-tag {
+            font-size: 11px;
+            font-weight: 700;
+            color: #f59e0b;
+            background: #fffbeb;
+            border-radius: 4px;
+            padding: 1px 6px;
+            margin-left: 6px;
         }
 
         .bar-bg {
@@ -129,6 +188,8 @@
             transition: width 0.5s ease;
         }
 
+        .bar-fill.winner { background: #f59e0b; }
+
         .total {
             text-align: center;
             color: #888;
@@ -140,7 +201,7 @@
 <body>
     <div class="card">
         <h1 id="question">Loading...</h1>
-        <p class="subtitle">Select an option and submit your vote</p>
+        <p class="subtitle" id="subtitle">Select an option and submit your vote</p>
 
         <div id="options-container"></div>
 
@@ -149,13 +210,31 @@
 
         <hr class="divider">
 
-        <div class="results-title">Live Results</div>
+        <div class="results-header">
+            <div class="results-title">Live Results</div>
+            <div class="live-badge"><div class="live-dot"></div> LIVE</div>
+        </div>
         <div id="results-container"></div>
         <div class="total" id="total"></div>
+
+        <button class="btn-reset" onclick="resetPoll()">Reset Poll</button>
     </div>
 
     <script>
-        // Load poll question and options on page load
+        const VOTED_KEY = 'poll_voted';
+
+        function hasVoted() {
+            return localStorage.getItem(VOTED_KEY) === 'true';
+        }
+
+        function markVoted() {
+            localStorage.setItem(VOTED_KEY, 'true');
+        }
+
+        function clearVoted() {
+            localStorage.removeItem(VOTED_KEY);
+        }
+
         async function loadPoll() {
             const res = await fetch('/poll');
             const data = await res.json();
@@ -165,24 +244,36 @@
             const container = document.getElementById('options-container');
             container.innerHTML = '';
             data.options.forEach(option => {
+                const safeId = CSS.escape(option);
                 container.innerHTML += `
-                    <div class="option" onclick="selectOption('${option}')">
-                        <input type="radio" name="option" id="${option}" value="${option}">
+                    <div class="option${hasVoted() ? ' disabled' : ''}" onclick="selectOption('${option}')">
+                        <input type="radio" name="option" id="${option}" value="${option}"${hasVoted() ? ' disabled' : ''}>
                         <label for="${option}">${option}</label>
                     </div>`;
             });
+
+            if (hasVoted()) {
+                const btn = document.getElementById('vote-btn');
+                btn.disabled = true;
+                const msg = document.getElementById('message');
+                msg.textContent = 'You have already voted. Thanks!';
+                msg.className = 'message info';
+                document.getElementById('subtitle').textContent = 'You have already submitted your vote.';
+            }
 
             loadResults();
         }
 
         function selectOption(value) {
+            if (hasVoted()) return;
             document.querySelectorAll('.option').forEach(el => el.classList.remove('selected'));
             document.getElementById(value).checked = true;
             event.currentTarget.classList.add('selected');
         }
 
-        // Submit vote
         async function submitVote() {
+            if (hasVoted()) return;
+
             const selected = document.querySelector('input[name="option"]:checked');
             const msg = document.getElementById('message');
 
@@ -204,8 +295,12 @@
             const data = await res.json();
 
             if (res.ok) {
+                markVoted();
                 msg.textContent = data.message;
                 msg.className = 'message success';
+                document.getElementById('subtitle').textContent = 'You have already submitted your vote.';
+                document.querySelectorAll('.option').forEach(el => el.classList.add('disabled'));
+                document.querySelectorAll('input[name="option"]').forEach(el => el.disabled = true);
                 loadResults();
             } else {
                 msg.textContent = data.error;
@@ -214,7 +309,6 @@
             }
         }
 
-        // Load and display results
         async function loadResults() {
             const res = await fetch('/poll/results');
             const data = await res.json();
@@ -223,16 +317,19 @@
             const container = document.getElementById('results-container');
             container.innerHTML = '';
 
+            const maxVotes = Math.max(...Object.values(data.results));
+
             Object.entries(data.results).forEach(([option, votes]) => {
                 const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
+                const isWinner = total > 0 && votes === maxVotes;
                 container.innerHTML += `
                     <div class="result-row">
                         <div class="result-label">
-                            <span>${option}</span>
+                            <span>${option}${isWinner ? '<span class="winner-tag">LEADING</span>' : ''}</span>
                             <span>${votes} votes (${pct}%)</span>
                         </div>
                         <div class="bar-bg">
-                            <div class="bar-fill" style="width: ${pct}%"></div>
+                            <div class="bar-fill${isWinner ? ' winner' : ''}" style="width: ${pct}%"></div>
                         </div>
                     </div>`;
             });
@@ -240,7 +337,23 @@
             document.getElementById('total').textContent = `Total votes: ${total}`;
         }
 
+        async function resetPoll() {
+            if (!confirm('Reset all votes? This cannot be undone.')) return;
+
+            const res = await fetch('/poll/reset', { method: 'POST' });
+            const data = await res.json();
+
+            if (res.ok) {
+                clearVoted();
+                loadPoll();
+                const msg = document.getElementById('message');
+                msg.textContent = data.message;
+                msg.className = 'message success';
+            }
+        }
+
         loadPoll();
+        setInterval(loadResults, 5000);
     </script>
 </body>
 </html>
