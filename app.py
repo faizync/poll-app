@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 # In-memory storage — no database needed
 poll = {
-    "question": "Wh!!!aaaat is your favourite programming language?",
+    "question": "Wh!!!sdaaaaat is your favourite programming language?",
     "options": {
         "Python": 0,
         "JavaScript": 0,
