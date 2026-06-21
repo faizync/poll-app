@@ -3,66 +3,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Poll App</title>
+    <title>PollSpace</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #f0f2f5;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-        }
-
-        h1 {
-            font-size: 22px;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f5f6fa;
             color: #1a1a2e;
-            margin-bottom: 8px;
+            min-height: 100vh;
         }
 
-        .subtitle {
+        /* ── Header ── */
+        header {
+            background: white;
+            border-bottom: 1px solid #e8eaf0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 16px 24px;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: #4f8ef7;
+            letter-spacing: -0.5px;
+        }
+
+        .logo span { color: #1a1a2e; }
+
+        /* ── Container ── */
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        .page-title {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .page-subtitle {
             color: #888;
             font-size: 14px;
             margin-bottom: 28px;
         }
 
-        .option {
+        /* ── Category filters ── */
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 28px;
+        }
+
+        .filter-pill {
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1.5px solid #e0e3ea;
+            background: white;
+            color: #666;
+            transition: all 0.18s;
+            user-select: none;
+        }
+
+        .filter-pill:hover { border-color: #4f8ef7; color: #4f8ef7; }
+
+        .filter-pill.active {
+            background: #4f8ef7;
+            border-color: #4f8ef7;
+            color: white;
+        }
+
+        /* ── Poll grid ── */
+        .polls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
+        .poll-card {
+            background: white;
+            border-radius: 14px;
+            padding: 22px;
+            cursor: pointer;
+            border: 1.5px solid #e8eaf0;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .poll-card:hover {
+            border-color: #4f8ef7;
+            box-shadow: 0 4px 20px rgba(79, 142, 247, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .poll-question {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a2e;
+            line-height: 1.4;
+            flex: 1;
+        }
+
+        .poll-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .votes-count { color: #aaa; font-weight: 500; }
+        .vote-cta { color: #4f8ef7; font-weight: 600; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #bbb;
+            grid-column: 1 / -1;
+            font-size: 15px;
+        }
+
+        /* ── Detail view ── */
+        #detail-view { display: none; }
+
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4f8ef7;
+            cursor: pointer;
+            padding: 0;
+            margin-bottom: 24px;
+        }
+
+        .back-btn:hover { color: #3a7be0; }
+
+        .detail-card {
+            background: white;
+            border-radius: 16px;
+            padding: 36px;
+            max-width: 560px;
+            border: 1.5px solid #e8eaf0;
+        }
+
+        .detail-category { margin-bottom: 16px; }
+
+        .detail-question {
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1.35;
+            margin-bottom: 28px;
+        }
+
+        /* ── Options ── */
+        .option-item {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 14px 16px;
-            border: 2px solid #e8e8e8;
+            padding: 13px 16px;
+            border: 1.5px solid #e8eaf0;
             border-radius: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s;
         }
 
-        .option:hover { border-color: #4f8ef7; background: #f7f9ff; }
-        .option.selected { border-color: #4f8ef7; background: #f0f5ff; }
-        .option.disabled { opacity: 0.6; cursor: not-allowed; pointer-events: none; }
+        .option-item:hover { border-color: #4f8ef7; background: #f7f9ff; }
+        .option-item.selected { border-color: #4f8ef7; background: #eff5ff; }
+        .option-item.disabled { opacity: 0.55; cursor: not-allowed; pointer-events: none; }
 
-        .option input[type="radio"] { accent-color: #4f8ef7; width: 18px; height: 18px; }
+        .option-item input[type="radio"] {
+            accent-color: #4f8ef7;
+            width: 17px;
+            height: 17px;
+            flex-shrink: 0;
+        }
 
-        .option label {
+        .option-item label {
             font-size: 15px;
             color: #333;
             cursor: pointer;
             flex: 1;
         }
 
-        .btn {
+        /* ── Buttons ── */
+        .btn-vote {
             width: 100%;
             padding: 14px;
             background: #4f8ef7;
@@ -72,288 +222,435 @@
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            margin-top: 8px;
-            transition: background 0.2s;
+            margin-top: 6px;
+            transition: background 0.18s;
         }
 
-        .btn:hover { background: #3a7be0; }
-        .btn:disabled { background: #aaa; cursor: not-allowed; }
+        .btn-vote:hover:not(:disabled) { background: #3a7be0; }
+        .btn-vote:disabled { background: #c5d4f7; cursor: not-allowed; }
+
+        .btn-refresh {
+            padding: 7px 16px;
+            background: white;
+            color: #4f8ef7;
+            border: 1.5px solid #4f8ef7;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn-refresh:hover { background: #eff5ff; }
 
         .btn-reset {
             width: 100%;
-            padding: 10px;
+            padding: 9px;
             background: transparent;
             color: #d32f2f;
-            border: 1.5px solid #d32f2f;
-            border-radius: 10px;
-            font-size: 13px;
+            border: 1.5px solid #fca5a5;
+            border-radius: 8px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            margin-top: 8px;
-            transition: all 0.2s;
+            margin-top: 10px;
+            transition: all 0.15s;
         }
 
-        .btn-reset:hover { background: #fdecea; }
+        .btn-reset:hover { background: #fef2f2; }
 
-        .message {
-            text-align: center;
-            padding: 10px;
+        /* ── Message ── */
+        .msg {
+            padding: 10px 14px;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 13px;
+            font-weight: 500;
             margin-top: 12px;
             display: none;
         }
 
-        .message.success { background: #e6f9f0; color: #1a9e5c; display: block; }
-        .message.error { background: #fdecea; color: #d32f2f; display: block; }
-        .message.info { background: #e8f0fe; color: #1a56db; display: block; }
+        .msg.success { background: #e6f9f0; color: #1a9e5c; display: block; }
+        .msg.error   { background: #fdecea; color: #d32f2f; display: block; }
+        .msg.info    { background: #e8f0fe; color: #1a56db; display: block; }
 
+        /* ── Results ── */
         .divider {
             border: none;
             border-top: 1px solid #eee;
             margin: 28px 0;
         }
 
+        .results-section { display: none; }
+        .results-section.visible { display: block; }
+
         .results-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            justify-content: space-between;
+            margin-bottom: 18px;
         }
 
         .results-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1a1a2e;
+            font-size: 15px;
+            font-weight: 700;
         }
 
-        .live-badge {
-            font-size: 11px;
-            font-weight: 600;
-            color: #1a9e5c;
-            background: #e6f9f0;
-            border-radius: 20px;
-            padding: 3px 10px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .live-dot {
-            width: 7px;
-            height: 7px;
-            background: #1a9e5c;
-            border-radius: 50%;
-            animation: pulse 1.4s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .result-row {
-            margin-bottom: 14px;
-        }
+        .result-row { margin-bottom: 14px; }
 
         .result-label {
             display: flex;
             justify-content: space-between;
-            font-size: 14px;
+            align-items: center;
+            font-size: 13px;
             color: #444;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
         }
 
-        .result-label .winner-tag {
-            font-size: 11px;
+        .option-name {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-weight: 500;
+        }
+
+        .leading-tag {
+            font-size: 10px;
             font-weight: 700;
             color: #f59e0b;
             background: #fffbeb;
+            border: 1px solid #fde68a;
             border-radius: 4px;
             padding: 1px 6px;
-            margin-left: 6px;
         }
+
+        .result-pct { font-weight: 600; color: #666; }
 
         .bar-bg {
             background: #f0f2f5;
             border-radius: 6px;
-            height: 10px;
+            height: 8px;
             overflow: hidden;
         }
 
         .bar-fill {
             height: 100%;
-            background: #4f8ef7;
             border-radius: 6px;
-            transition: width 0.5s ease;
+            transition: width 0.55s ease;
         }
 
+        .bar-fill.normal { background: #4f8ef7; }
         .bar-fill.winner { background: #f59e0b; }
 
-        .total {
+        .results-total {
             text-align: center;
-            color: #888;
+            color: #999;
             font-size: 13px;
-            margin-top: 16px;
+            margin-top: 18px;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+            .container { padding: 20px 16px; }
+            .detail-card { padding: 24px 18px; }
+            .polls-grid { grid-template-columns: 1fr; }
+            .detail-question { font-size: 19px; }
         }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1 id="question">Loading...</h1>
-        <p class="subtitle" id="subtitle">Select an option and submit your vote</p>
 
-        <div id="options-container"></div>
-
-        <button class="btn" id="vote-btn" onclick="submitVote()">Submit Vote</button>
-        <div class="message" id="message"></div>
-
-        <hr class="divider">
-
-        <div class="results-header">
-            <div class="results-title">Live Results</div>
-            <div class="live-badge"><div class="live-dot"></div> LIVE</div>
-        </div>
-        <div id="results-container"></div>
-        <div class="total" id="total"></div>
-
-        <button class="btn-reset" onclick="resetPoll()">Reset Poll</button>
+<header>
+    <div class="header-inner">
+        <div class="logo">Poll<span>Space</span></div>
     </div>
+</header>
 
-    <script>
-        const VOTED_KEY = 'poll_voted';
+<!-- ── List View ── -->
+<div id="list-view">
+    <div class="container">
+        <p class="page-title">Community Polls</p>
+        <p class="page-subtitle">Browse questions across topics and share your opinion.</p>
+        <div class="filters" id="filters"></div>
+        <div class="polls-grid" id="polls-grid"></div>
+    </div>
+</div>
 
-        function hasVoted() {
-            return localStorage.getItem(VOTED_KEY) === 'true';
+<!-- ── Detail View ── -->
+<div id="detail-view">
+    <div class="container">
+        <button class="back-btn" onclick="showList()">&#8592; Back to Polls</button>
+        <div class="detail-card">
+            <div class="detail-category">
+                <span class="category-badge" id="detail-badge"></span>
+            </div>
+            <div class="detail-question" id="detail-question"></div>
+
+            <div id="voting-form">
+                <div id="options-container"></div>
+                <button class="btn-vote" id="vote-btn" onclick="submitVote()">Submit Vote</button>
+                <div class="msg" id="vote-msg"></div>
+            </div>
+
+            <div class="results-section" id="results-section">
+                <hr class="divider">
+                <div class="results-header">
+                    <div class="results-title">Results</div>
+                    <button class="btn-refresh" onclick="loadResults(currentPollId)">Refresh</button>
+                </div>
+                <div id="results-container"></div>
+                <div class="results-total" id="results-total"></div>
+                <button class="btn-reset" onclick="resetCurrentPoll()">Reset Poll</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const CATEGORY_COLORS = {
+        'Technology':    { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' },
+        'Food':          { bg: '#fffbeb', text: '#92400e', border: '#fde68a' },
+        'Entertainment': { bg: '#f5f3ff', text: '#6d28d9', border: '#ddd6fe' },
+        'Sports':        { bg: '#ecfdf5', text: '#065f46', border: '#a7f3d0' },
+        'Lifestyle':     { bg: '#fff1f2', text: '#9f1239', border: '#fecdd3' },
+    };
+
+    function catStyle(cat) {
+        return CATEGORY_COLORS[cat] || { bg: '#f5f6fa', text: '#555', border: '#e0e3ea' };
+    }
+
+    function badgeHtml(cat) {
+        const c = catStyle(cat);
+        return `<span class="category-badge" style="background:${c.bg};color:${c.text};border:1px solid ${c.border};">${escHtml(cat)}</span>`;
+    }
+
+    let activeCategory = 'All';
+    let currentPollId = null;
+
+    // ── Init ─────────────────────────────────────────────────────────
+
+    async function init() {
+        await Promise.all([loadCategories(), loadPolls()]);
+    }
+
+    // ── Categories ───────────────────────────────────────────────────
+
+    async function loadCategories() {
+        const res = await fetch('/api/categories');
+        const { categories } = await res.json();
+        const el = document.getElementById('filters');
+        el.innerHTML = pill('All', activeCategory === 'All');
+        categories.forEach(cat => {
+            el.innerHTML += pill(cat, activeCategory === cat);
+        });
+    }
+
+    function pill(cat, active) {
+        return `<div class="filter-pill${active ? ' active' : ''}" data-cat="${escAttr(cat)}" onclick="setCategory('${escAttr(cat)}')">${escHtml(cat)}</div>`;
+    }
+
+    function setCategory(cat) {
+        activeCategory = cat;
+        document.querySelectorAll('.filter-pill').forEach(p => {
+            p.classList.toggle('active', p.dataset.cat === cat);
+        });
+        loadPolls(cat === 'All' ? '' : cat);
+    }
+
+    // ── List view ────────────────────────────────────────────────────
+
+    async function loadPolls(category = '') {
+        const url = category ? `/api/polls?category=${encodeURIComponent(category)}` : '/api/polls';
+        const res = await fetch(url);
+        const { polls } = await res.json();
+        renderCards(polls);
+    }
+
+    function renderCards(polls) {
+        const grid = document.getElementById('polls-grid');
+        if (!polls.length) {
+            grid.innerHTML = '<div class="empty-state">No polls in this category yet.</div>';
+            return;
+        }
+        grid.innerHTML = polls.map(p => {
+            const voted = hasVoted(p.id);
+            const votesLabel = p.total_votes === 1 ? '1 vote' : `${p.total_votes} votes`;
+            return `
+                <div class="poll-card" onclick="showPoll('${p.id}')">
+                    ${badgeHtml(p.category)}
+                    <div class="poll-question">${escHtml(p.question)}</div>
+                    <div class="poll-meta">
+                        <span class="votes-count">${votesLabel}</span>
+                        <span class="vote-cta">${voted ? 'View results →' : 'Vote →'}</span>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    function showList() {
+        document.getElementById('detail-view').style.display = 'none';
+        document.getElementById('list-view').style.display = 'block';
+        loadPolls(activeCategory === 'All' ? '' : activeCategory);
+    }
+
+    // ── Detail view ──────────────────────────────────────────────────
+
+    async function showPoll(pollId) {
+        currentPollId = pollId;
+        document.getElementById('list-view').style.display = 'none';
+        document.getElementById('detail-view').style.display = 'block';
+
+        const res = await fetch(`/api/polls/${pollId}`);
+        const poll = await res.json();
+
+        // Badge
+        const badge = document.getElementById('detail-badge');
+        const c = catStyle(poll.category);
+        badge.textContent = poll.category;
+        badge.style.cssText = `background:${c.bg};color:${c.text};border:1px solid ${c.border};`;
+
+        document.getElementById('detail-question').textContent = poll.question;
+
+        const voted = hasVoted(pollId);
+
+        // Options
+        const container = document.getElementById('options-container');
+        container.innerHTML = poll.options.map((opt, i) => `
+            <div class="option-item${voted ? ' disabled' : ''}" data-value="${escAttr(opt)}" onclick="selectOption(this)">
+                <input type="radio" name="poll-option" id="opt-${i}" value="${escAttr(opt)}"${voted ? ' disabled' : ''}>
+                <label for="opt-${i}">${escHtml(opt)}</label>
+            </div>`).join('');
+
+        // Vote button & message
+        const btn = document.getElementById('vote-btn');
+        btn.disabled = voted;
+        const msg = document.getElementById('vote-msg');
+        if (voted) {
+            msg.textContent = 'You have already voted on this poll.';
+            msg.className = 'msg info';
+        } else {
+            msg.textContent = '';
+            msg.className = 'msg';
         }
 
-        function markVoted() {
-            localStorage.setItem(VOTED_KEY, 'true');
+        // Results section
+        const resultsSection = document.getElementById('results-section');
+        if (voted) {
+            resultsSection.classList.add('visible');
+            loadResults(pollId);
+        } else {
+            resultsSection.classList.remove('visible');
+            document.getElementById('results-container').innerHTML = '';
+            document.getElementById('results-total').textContent = '';
+        }
+    }
+
+    function selectOption(el) {
+        if (hasVoted(currentPollId)) return;
+        document.querySelectorAll('.option-item').forEach(o => o.classList.remove('selected'));
+        el.classList.add('selected');
+        el.querySelector('input').checked = true;
+    }
+
+    async function submitVote() {
+        if (hasVoted(currentPollId)) return;
+
+        const selected = document.querySelector('input[name="poll-option"]:checked');
+        const msg = document.getElementById('vote-msg');
+
+        if (!selected) {
+            msg.textContent = 'Please select an option first.';
+            msg.className = 'msg error';
+            return;
         }
 
-        function clearVoted() {
-            localStorage.removeItem(VOTED_KEY);
+        const btn = document.getElementById('vote-btn');
+        btn.disabled = true;
+
+        const res = await fetch(`/api/polls/${currentPollId}/vote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ option: selected.value }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            markVoted(currentPollId);
+            msg.textContent = 'Your vote has been recorded!';
+            msg.className = 'msg success';
+            document.querySelectorAll('.option-item').forEach(o => o.classList.add('disabled'));
+            document.getElementById('results-section').classList.add('visible');
+            loadResults(currentPollId);
+        } else {
+            msg.textContent = data.error;
+            msg.className = 'msg error';
+            btn.disabled = false;
         }
+    }
 
-        async function loadPoll() {
-            const res = await fetch('/poll');
-            const data = await res.json();
+    async function loadResults(pollId) {
+        const res = await fetch(`/api/polls/${pollId}/results`);
+        const data = await res.json();
 
-            document.getElementById('question').textContent = data.question;
+        const total = data.total_votes;
+        const maxVotes = total > 0 ? Math.max(...Object.values(data.results)) : 0;
+        const container = document.getElementById('results-container');
 
-            const container = document.getElementById('options-container');
-            container.innerHTML = '';
-            data.options.forEach(option => {
-                const safeId = CSS.escape(option);
-                container.innerHTML += `
-                    <div class="option${hasVoted() ? ' disabled' : ''}" onclick="selectOption('${option}')">
-                        <input type="radio" name="option" id="${option}" value="${option}"${hasVoted() ? ' disabled' : ''}>
-                        <label for="${option}">${option}</label>
-                    </div>`;
-            });
+        container.innerHTML = Object.entries(data.results).map(([opt, votes]) => {
+            const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
+            const isLeading = total > 0 && votes === maxVotes;
+            return `
+                <div class="result-row">
+                    <div class="result-label">
+                        <span class="option-name">
+                            ${escHtml(opt)}
+                            ${isLeading ? '<span class="leading-tag">LEADING</span>' : ''}
+                        </span>
+                        <span class="result-pct">${pct}%</span>
+                    </div>
+                    <div class="bar-bg">
+                        <div class="bar-fill ${isLeading ? 'winner' : 'normal'}" style="width:${pct}%"></div>
+                    </div>
+                </div>`;
+        }).join('');
 
-            if (hasVoted()) {
-                const btn = document.getElementById('vote-btn');
-                btn.disabled = true;
-                const msg = document.getElementById('message');
-                msg.textContent = 'You have already voted. Thanks!';
-                msg.className = 'message info';
-                document.getElementById('subtitle').textContent = 'You have already submitted your vote.';
-            }
+        const word = total === 1 ? 'vote' : 'votes';
+        document.getElementById('results-total').textContent = `${total} ${word} total`;
+    }
 
-            loadResults();
+    async function resetCurrentPoll() {
+        if (!confirm('Reset all votes for this poll? This cannot be undone.')) return;
+        const res = await fetch(`/api/polls/${currentPollId}/reset`, { method: 'POST' });
+        if (res.ok) {
+            clearVoted(currentPollId);
+            showPoll(currentPollId);
         }
+    }
 
-        function selectOption(value) {
-            if (hasVoted()) return;
-            document.querySelectorAll('.option').forEach(el => el.classList.remove('selected'));
-            document.getElementById(value).checked = true;
-            event.currentTarget.classList.add('selected');
-        }
+    // ── localStorage helpers ─────────────────────────────────────────
 
-        async function submitVote() {
-            if (hasVoted()) return;
+    function hasVoted(pollId)   { return localStorage.getItem(`voted_${pollId}`) === '1'; }
+    function markVoted(pollId)  { localStorage.setItem(`voted_${pollId}`, '1'); }
+    function clearVoted(pollId) { localStorage.removeItem(`voted_${pollId}`); }
 
-            const selected = document.querySelector('input[name="option"]:checked');
-            const msg = document.getElementById('message');
+    // ── Escape helpers ───────────────────────────────────────────────
 
-            if (!selected) {
-                msg.textContent = 'Please select an option first.';
-                msg.className = 'message error';
-                return;
-            }
+    function escHtml(s) {
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
 
-            const btn = document.getElementById('vote-btn');
-            btn.disabled = true;
+    function escAttr(s) {
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/'/g, '&#39;')
+            .replace(/"/g, '&quot;');
+    }
 
-            const res = await fetch('/poll/vote', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ option: selected.value })
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                markVoted();
-                msg.textContent = data.message;
-                msg.className = 'message success';
-                document.getElementById('subtitle').textContent = 'You have already submitted your vote.';
-                document.querySelectorAll('.option').forEach(el => el.classList.add('disabled'));
-                document.querySelectorAll('input[name="option"]').forEach(el => el.disabled = true);
-                loadResults();
-            } else {
-                msg.textContent = data.error;
-                msg.className = 'message error';
-                btn.disabled = false;
-            }
-        }
-
-        async function loadResults() {
-            const res = await fetch('/poll/results');
-            const data = await res.json();
-
-            const total = data.total_votes;
-            const container = document.getElementById('results-container');
-            container.innerHTML = '';
-
-            const maxVotes = Math.max(...Object.values(data.results));
-
-            Object.entries(data.results).forEach(([option, votes]) => {
-                const pct = total > 0 ? Math.round((votes / total) * 100) : 0;
-                const isWinner = total > 0 && votes === maxVotes;
-                container.innerHTML += `
-                    <div class="result-row">
-                        <div class="result-label">
-                            <span>${option}${isWinner ? '<span class="winner-tag">LEADING</span>' : ''}</span>
-                            <span>${votes} votes (${pct}%)</span>
-                        </div>
-                        <div class="bar-bg">
-                            <div class="bar-fill${isWinner ? ' winner' : ''}" style="width: ${pct}%"></div>
-                        </div>
-                    </div>`;
-            });
-
-            document.getElementById('total').textContent = `Total votes: ${total}`;
-        }
-
-        async function resetPoll() {
-            if (!confirm('Reset all votes? This cannot be undone.')) return;
-
-            const res = await fetch('/poll/reset', { method: 'POST' });
-            const data = await res.json();
-
-            if (res.ok) {
-                clearVoted();
-                loadPoll();
-                const msg = document.getElementById('message');
-                msg.textContent = data.message;
-                msg.className = 'message success';
-            }
-        }
-
-        loadPoll();
-        setInterval(loadResults, 5000);
-    </script>
+    init();
+</script>
 </body>
 </html>
