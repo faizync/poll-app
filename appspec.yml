@@ -4,6 +4,7 @@ os: linux
 files:
   - source: /
     destination: /var/www/poll-app
+    file_exists_behavior: OVERWRITE
 
 hooks:
   BeforeInstall:
